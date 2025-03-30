@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
 
 
@@ -45,14 +46,17 @@ class LogoutUserAPIView(APIView):
 
 
 
- #class ListCreateAPIView(APIView):
-#    pass
+class TaskListCreateView(ListCreateAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
 
 
-#class RetrieveUpdateDeleteAPIView(APIView):
-#    pass
+class TaskDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
 
-
-#def __str__(self):
-#    return self.
-# Create your views here.
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
