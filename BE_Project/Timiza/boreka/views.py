@@ -17,7 +17,7 @@ class RegisterUserAPIView(APIView):
         email = request.data.get("email")
         password = request.data.get("password")
 
-        if not username or not password:
+        if not username.strip() or not password.strip():
             return Response({"error": "Username and password are required"}, status=status.HTTP_400_BAD_REQUEST)
 
         if User.objects.filter(username=username).exists():

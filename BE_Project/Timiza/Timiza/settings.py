@@ -40,6 +40,7 @@ INSTALLED_APPS = [
    #New
     'rest_framework',
     'boreka',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -53,6 +54,22 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'Timiza.urls'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=12),  
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),  
+}
+
 
 TEMPLATES = [
     {
