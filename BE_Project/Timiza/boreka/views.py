@@ -2,13 +2,12 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.views import APIView
-from django.contrib.auth import authenticate, login, logout
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from django.contrib.auth import authenticate, logout
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from .serializers import TaskSerializer
 from .models import Task
 from.permissions import IsAdminUser, IsTaskOwner
-
 
 
 
@@ -28,18 +27,6 @@ class RegisterUserAPIView(APIView):
         return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
 
 
-class LoginUserAPIView(APIView):
-    def post(self, request):
-        username = request.data.get("username")
-        password = request.data.get("password")
-
-        user = authenticate(username=username, password=password)
-
-        if user is not None:
-            login(request, user)
-            return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
-        else:
-            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutUserAPIView(APIView):
@@ -57,12 +44,12 @@ class TaskListCreateView(ListCreateAPIView):
         return Task.objects.filter(user=self.request.user)  #Automatically assign user to task they have created
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)  #from rest_framework import permissions
+        serializer.save(user=self.request.user)  
 
 # Retrieve, Update, Delete Tasks
 class TaskDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]  #Restrict access to logged-in users only and also ensure that only owners of tasks can modify
+    permission_classes = [IsAuthenticated, IsTaskOwner]  #Restrict access to logged-in users only and also ensure that only owners of tasks can modify
 
     def get_queryset(self):
         return Task.objects.filter(user=self.request.user)  #Ensure users only access their own tasks
