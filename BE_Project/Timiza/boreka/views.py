@@ -3,10 +3,11 @@ from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from .serializers import TaskSerializer
 from .models import Task
+from.permissions import IsOwner
 
 
 
@@ -50,7 +51,7 @@ class LogoutUserAPIView(APIView):
 
 class TaskListCreateView(ListCreateAPIView):
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated]  #Restrict access to logged-in users only
+    permission_classes = [IsAuthenticated, IsAdminUser]  #Restrict access to logged-in users only
 
     def get_queryset(self):
         return Task.objects.filter(user=self.request.user)  #Show only tasks belonging to the logged-in user
@@ -61,7 +62,7 @@ class TaskListCreateView(ListCreateAPIView):
 
 class TaskDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated]  #Restrict access to logged-in users only
+    permission_classes = [IsAuthenticated, IsOwner, IsAdminUser]  #Restrict access to logged-in users only and also ensure that only owners of tasks can modify
 
     def get_queryset(self):
         return Task.objects.filter(user=self.request.user)  #Ensure users only access their own tasks
