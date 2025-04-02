@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from .serializers import TaskSerializer
 from .models import Task
-from.permissions import IsOwner
+from.permissions import IsAdminUser, IsTaskOwner
 
 
 
@@ -48,21 +48,23 @@ class LogoutUserAPIView(APIView):
         return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
 
 
-
+# List and Create Tasks
 class TaskListCreateView(ListCreateAPIView):
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]  #Restrict access to logged-in users only
+    permission_classes = [IsAuthenticated]  #Restrict access to logged-in users only
 
     def get_queryset(self):
-        return Task.objects.filter(user=self.request.user)  #Show only tasks belonging to the logged-in user
+        return Task.objects.filter(user=self.request.user)  #Automatically assign user to task they have created
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)  #Ensure the task is saved with the logged-in user
+        serializer.save(user=self.request.user)  #from rest_framework import permissions
 
-
+# Retrieve, Update, Delete Tasks
 class TaskDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated, IsOwner, IsAdminUser]  #Restrict access to logged-in users only and also ensure that only owners of tasks can modify
+    permission_classes = [IsAuthenticated, IsAdminUser]  #Restrict access to logged-in users only and also ensure that only owners of tasks can modify
 
     def get_queryset(self):
         return Task.objects.filter(user=self.request.user)  #Ensure users only access their own tasks
+
+    
