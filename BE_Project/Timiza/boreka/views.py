@@ -40,8 +40,11 @@ class TaskListCreateView(ListCreateAPIView):
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]  #Restrict access to logged-in users only
 
+
+
     def get_queryset(self):
         return Task.objects.filter(user=self.request.user)  #Automatically assign user to task they have created
+
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)  
@@ -50,6 +53,8 @@ class TaskListCreateView(ListCreateAPIView):
 class TaskDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated, IsTaskOwner]  #Restrict access to logged-in users only and also ensure that only owners of tasks can modify
+    lookup_field = "pk" 
+
 
     def get_queryset(self):
         return Task.objects.filter(user=self.request.user)  #Ensure users only access their own tasks
