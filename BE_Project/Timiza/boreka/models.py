@@ -26,15 +26,5 @@ class Task(models.Model):
     priority_level = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default="Medium")
 
 
-    def clean(self):
-        if self.due_date <= now().date():  
-            raise ValidationError("Due date must be a future date.")
-
-
-    def save(self, *args, **kwargs):
-        self.clean()  
-        super().save(*args, **kwargs) 
-         
-
     def __str__(self):
         return self.title

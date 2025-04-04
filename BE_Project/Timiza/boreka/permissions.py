@@ -10,4 +10,4 @@ class IsTaskOwner(BasePermission):
     Custom permission to allow only task owners to edit or delete their own tasks.
     """
     def has_object_permission(self, request, view, obj):
-        return obj.user == request.user
+        return request.user. is_staff or obj.user == request.user
