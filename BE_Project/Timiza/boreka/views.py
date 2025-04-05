@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from .serializers import TaskSerializer
 from .models import Task
-from.permissions import IsAdminUser, IsTaskOwner
+from .permissions import IsSuperUser,IsTaskOwner, IsAdminUser
 
 
 
@@ -27,36 +27,37 @@ class RegisterUserAPIView(APIView):
         return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
 
 
-
-
 class LogoutUserAPIView(APIView):
     def post(self, request):
         logout(request)
         return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
 
 
-# List and Create Tasks
+
 class TaskListCreateView(ListCreateAPIView):
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated]  #Restrict access to logged-in users only
-
-
+    permission_classes = [IsAuthenticated, IsSuperUser | IsAdminUser | IsTaskOwner]
 
     def get_queryset(self):
-        return Task.objects.filter(user=self.request.user)  #Automatically assign user to task they have created
-
+        if self.request.user.is_superuser:
+            return Task.objects.all()  # Superuser sees all tasks
+        return Task.objects.filter(user=self.request.user)  # Regular users only see their tasks
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)  
+        serializer.save(user=self.request.user)
 
-# Retrieve, Update, Delete Tasks
+
+
 class TaskDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated, IsTaskOwner]  #Restrict access to logged-in users only and also ensure that only owners of tasks can modify
-    lookup_field = "pk" 
-
+    permission_classes = [IsAuthenticated, IsSuperUser | IsTaskOwner]  # Ensure Hugo is treated correctly
+    lookup_field = "pk"
 
     def get_queryset(self):
-        return Task.objects.filter(user=self.request.user)  #Ensure users only access their own tasks
+        return Task.objects.all()
 
-    
+    def get_object(self):
+        obj = super().get_object()
+        if not self.request.user.is_superuser and obj.user != self.request.user:
+            self.permission_denied(self.request, message="You do not have permission to access this task.")
+        return obj
